@@ -2,7 +2,7 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 from aiogram import Bot, Dispatcher
 from utils.webhook import set_webhook
 from config.settings import (
-    BOT_PROPERTIEST,
+    BOT_PROPERTIES,
     WEB_SERVER_PORT,
     WEB_SERVER_HOST,
     WEBHOOK_SECRET,
@@ -18,7 +18,7 @@ dp = Dispatcher()
 dp.include_routers(*ROUTERS)
 bot = Bot(
     token=BOT_TOKEN,
-    default=BOT_PROPERTIEST,
+    default=BOT_PROPERTIES,
 )
 
 async def start_polling() -> None:
