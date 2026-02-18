@@ -1,15 +1,23 @@
-from aiogram import  Router, types
+from aiogram import Router, types, Bot
+from aiogram.enums import ChatAction
+from aiogram.types import BusinessConnection
+from aiogram.utils.chat_action import ChatActionSender
 
-from utils.writer import write
 from utils.connector import get_request_data
+from utils.writer import write
 
 router = Router()
 
+
 @router.message()
-async def response_with_ai(message: types.Message):
-    ai_response = await get_request_data(str(message.text))
-    
-    await write(
-        text=ai_response,
-        message=message
-    )
+async def response_with_ai(message: types.Message, bot: Bot):
+    await message.react([types.ReactionTypeEmoji(emoji="👌")])
+    assert message.from_user
+    async with ChatActionSender(
+        bot=bot, chat_id=message.from_user.id, action=ChatAction.RECORD_VOICE
+    ):
+        ai_response = await get_request_data(str(message.text))
+    async with ChatActionSender(
+        bot=bot, chat_id=message.from_user.id, action=ChatAction.TYPING
+    ):
+        await write(text=ai_response, message=message)

@@ -24,7 +24,7 @@ DEBUG = os.getenv("BOT_DEBUG") in ["true", "True", "1", "on"]
 
 BS_ID = os.getenv("BUSSINES_CONNECTION_ID")
 
-BOT_PROPERTIEST = DefaultBotProperties(parse_mode="html")
+BOT_PROPERTIEST = DefaultBotProperties(parse_mode="markdown")
 
 WEB_SERVER_HOST = "0.0.0.0"
 WEB_SERVER_PORT = 7400
