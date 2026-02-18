@@ -2,6 +2,7 @@ import os
 
 from aiogram.client.default import DefaultBotProperties
 from dotenv import load_dotenv
+from aiogram.enums import ParseMode
 
 load_dotenv()
 
@@ -24,7 +25,7 @@ DEBUG = os.getenv("BOT_DEBUG") in ["true", "True", "1", "on"]
 
 BS_ID = os.getenv("BUSSINES_CONNECTION_ID")
 
-BOT_PROPERTIEST = DefaultBotProperties(parse_mode="markdown")
+BOT_PROPERTIES = DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
 
 WEB_SERVER_HOST = "0.0.0.0"
 WEB_SERVER_PORT = 7400
