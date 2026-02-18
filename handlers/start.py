@@ -1,6 +1,6 @@
 import asyncio
 
-from aiogram import Bot, F, Router, types
+from aiogram import Bot, Router, types
 from aiogram.enums import ChatAction
 from aiogram.types import BusinessConnection
 from aiogram.utils.chat_action import ChatActionSender
