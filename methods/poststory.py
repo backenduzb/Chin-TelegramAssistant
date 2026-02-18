@@ -5,10 +5,10 @@ import asyncio
 import aiofiles
 import tempfile
 from aiogram import types
+from config.settings import BOT_TOKEN
 
 _story_lock = asyncio.Lock()
 ALLOWED_PERIODS = {21600, 43200, 86400, 172800}
-
 
 async def _download_from_telegram_file_server(bot_token: str, file_path: str, dst_path: str):
     url = f"https://api.telegram.org/file/bot{bot_token}/{file_path}"
@@ -36,16 +36,18 @@ async def post_story(message: types.Message, caption: str, life_time: int, video
     tmp_path = None
     try:
         async with _story_lock:
+            assert message.bot is not None
             tg_file = await asyncio.wait_for(message.bot.get_file(video_file_id), timeout=25)
             tmp_file = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
             tmp_path = tmp_file.name
             tmp_file.close()  
+            assert tg_file.file_path is not None
             await asyncio.wait_for(
-                _download_from_telegram_file_server(message.bot.token, tg_file.file_path, tmp_path),
+                _download_from_telegram_file_server(BOT_TOKEN, tg_file.file_path, tmp_path),
                 timeout=260
             )
 
-        url = f"https://api.telegram.org/bot{message.bot.token}/postStory"
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/postStory"
         attach_name = "story_video"
         content = {"type": "video", "video": f"attach://{attach_name}"}
 
