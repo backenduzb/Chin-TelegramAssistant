@@ -1,80 +1,107 @@
 import os
 import json
+import aiohttp
 import asyncio
+import aiofiles
 import tempfile
-import requests
 from aiogram import types
-from config.settings import BS_ID
 
 _story_lock = asyncio.Lock()
 ALLOWED_PERIODS = {21600, 43200, 86400, 172800}
 
-def _post_story_requests(url: str, data: dict, file_path: str, attach_name: str):
-    headers = {
-        "Expect": "",            
-        "Connection": "close",   
-    }
-    timeout = (20, 90) 
 
-    with open(file_path, "rb") as vf:
-        files = {attach_name: ("video.mp4", vf, "video/mp4")}
-        r = requests.post(url, data=data, files=files, headers=headers, timeout=timeout)
-        try:
-            return r.status_code, r.json()
-        except Exception:
-            return r.status_code, None
+async def _download_from_telegram_file_server(bot_token: str, file_path: str, dst_path: str):
+    url = f"https://api.telegram.org/file/bot{bot_token}/{file_path}"
+
+    timeout = aiohttp.ClientTimeout(total=240, connect=20, sock_read=180)
+    connector = aiohttp.TCPConnector(force_close=True, limit=2)
+    headers = {"Expect": "", "Connection": "close"}
+
+    async with aiohttp.ClientSession(timeout=timeout, headers=headers, connector=connector) as session:
+        async with session.get(url) as resp:
+            resp.raise_for_status()
+            async with aiofiles.open(dst_path, "wb") as f:
+                async for chunk in resp.content.iter_chunked(1024 * 256):
+                    await f.write(chunk)
+
 
 async def post_story(message: types.Message, caption: str, life_time: int, video_file_id: str):
-    if not BS_ID:
+    from config.settings import BS_ID
+
+    if not BS_ID or not video_file_id:
         return False
     if life_time not in ALLOWED_PERIODS:
         life_time = 86400
-    if not video_file_id:
-        return False
 
-    async with _story_lock:
-        tmp_path = None
-        try:
+    tmp_path = None
+    try:
+        async with _story_lock:
             tg_file = await asyncio.wait_for(message.bot.get_file(video_file_id), timeout=25)
-
-            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
-                tmp_path = f.name
-
+            tmp_file = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+            tmp_path = tmp_file.name
+            tmp_file.close()  
             await asyncio.wait_for(
-                message.bot.download_file(tg_file.file_path, destination=tmp_path),
-                timeout=180
+                _download_from_telegram_file_server(message.bot.token, tg_file.file_path, tmp_path),
+                timeout=260
             )
 
-            attach_name = "story_video"
-            content = {"type": "video", "video": f"attach://{attach_name}"}
-            url = f"https://api.telegram.org/bot{message.bot.token}/postStory"
+        url = f"https://api.telegram.org/bot{message.bot.token}/postStory"
+        attach_name = "story_video"
+        content = {"type": "video", "video": f"attach://{attach_name}"}
 
-            payload = {
-                "business_connection_id": BS_ID,
-                "content": json.dumps(content),
-                "active_period": str(life_time),
-                "caption": caption or "",
-            }
+        timeout = aiohttp.ClientTimeout(total=180, connect=20, sock_read=180)
+        connector = aiohttp.TCPConnector(force_close=True, limit=2)
+        headers = {"Expect": "", "Connection": "close"}
 
-            for attempt in range(2):
-                try:
-                    status, data = await asyncio.to_thread(
-                        _post_story_requests, url, payload, tmp_path, attach_name
+        for attempt in range(3):
+            try:
+                form = aiohttp.FormData()
+                form.add_field("business_connection_id", BS_ID)
+                form.add_field("content", json.dumps(content))
+                form.add_field("active_period", str(life_time))
+                form.add_field("caption", caption or "")
+
+                async with aiofiles.open(tmp_path, "rb") as vf:
+                    form.add_field(
+                        attach_name,
+                        await vf.read(),
+                        filename="video.mp4",
+                        content_type="video/mp4",
                     )
-                    if isinstance(data, dict):
+
+                async with aiohttp.ClientSession(timeout=timeout, headers=headers, connector=connector) as session:
+                    async with session.post(url, data=form) as resp:
+                        raw = await resp.text()
+
+                        if resp.status == 429:
+                            try:
+                                j = json.loads(raw)
+                                wait_s = int(j.get("parameters", {}).get("retry_after", 2))
+                            except Exception:
+                                wait_s = 2
+                            await asyncio.sleep(wait_s + 0.5)
+                            continue
+
+                        if resp.status >= 500:
+                            await asyncio.sleep(2.0 + attempt)
+                            continue
+
+                        try:
+                            data = json.loads(raw)
+                        except json.JSONDecodeError:
+                            return False
+
                         return bool(data.get("ok"))
-                except requests.RequestException:
-                    pass
 
-                if attempt == 0:
-                    await asyncio.sleep(2)
-                    continue
+            except (asyncio.TimeoutError, aiohttp.ClientError):
+                await asyncio.sleep(2.0 + attempt)
+                continue
 
-            return False
+        return False
 
-        finally:
-            if tmp_path and os.path.exists(tmp_path):
-                try:
-                    os.remove(tmp_path)
-                except Exception:
-                    pass
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass

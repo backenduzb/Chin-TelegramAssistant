@@ -23,7 +23,6 @@ async def story_from_video(message: types.Message, state: FSMContext,bot: Bot):
 @router.message(AdminState.waiting_admin_response)
 async def check_and_upload( message: types.Message, state: FSMContext, bot: Bot):
     text = str(message.text).lower()
-    response = False
     if "ha" in text or "upload qil" in text or "albatta" in text:
         async with ChatActionSender(
             bot=bot, chat_id=message.from_user.id, action=ChatAction.CHOOSE_STICKER
@@ -45,12 +44,18 @@ async def check_and_upload( message: types.Message, state: FSMContext, bot: Bot)
         async with ChatActionSender(
             bot=bot,chat_id=message.chat.id, action=ChatAction.UPLOAD_VIDEO
                     ):
-            response = await post_story(
+            await post_story(
                 caption=caption or "Posted with @python_de_bot",
                 video_file_id=file_id or "",
                 message=message,
                 life_time=86400
             )
+            
+            await message.react([types.ReactionTypeEmoji(emoji='🔥')])
+        async with ChatActionSender(
+                bot=bot, chat_id=message.from_user.id, action=ChatAction.TYPING
+        ):
+                await write(message=message, text="Storyingini upload qildim")
 
     elif "yo'q" in text or "kerak emas" in text or "emas" in text:
         async with ChatActionSender(
@@ -60,22 +65,3 @@ async def check_and_upload( message: types.Message, state: FSMContext, bot: Bot)
             await message.answer_sticker("CAACAgIAAxkBAAEaNiRpbkWQ3KJTPq99JqU0TsC0B8M3VQAC3D0AArc_8EhpmZXV6BW7-TgE")
             await state.clear()
             return
-    
-    if not response:
-            await message.react([types.ReactionTypeEmoji(emoji="😢")])
-            async with ChatActionSender(
-                bot=bot, chat_id=message.from_user.id, action=ChatAction.CHOOSE_STICKER
-            ):
-                await message.answer_sticker("CAACAgIAAxkBAAEaNiRpbkWQ3KJTPq99JqU0TsC0B8M3VQAC3D0AArc_8EhpmZXV6BW7-TgE")
-            async with ChatActionSender(
-                bot=bot, chat_id=message.from_user.id, action=ChatAction.TYPING
-            ):   
-                await write(message=message, text="Uzur storyingizni post qila olmadim.")
-            await state.clear()
-            return
-        
-    await message.react([types.ReactionTypeEmoji(emoji='🔥')])
-    async with ChatActionSender(
-                bot=bot, chat_id=message.from_user.id, action=ChatAction.TYPING
-    ):
-        await write(message=message, text="Storyingini upload qildim")
