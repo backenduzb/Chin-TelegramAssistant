@@ -18,6 +18,8 @@ START_STICKERS = [
 
 BOT_TOKEN = os.getenv("BOT_TOKEN") or ""
 
+CLAUDE_LLMA_SECRET = os.getenv("CLAUDE_AI_SECRET")
+
 DEBUG = os.getenv("BOT_DEBUG") in ["true", "True", "1", "on"]
 
 BS_ID = os.getenv("BUSSINES_CONNECTION_ID")
