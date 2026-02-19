@@ -8,7 +8,7 @@ TAG_PATTERNS = [
 ]
 
 async def write(text: str, message):
-    msg = await message.answer("")
+    msg = await message.answer("...")
 
     words = text.split(" ")
     message_text = ""
