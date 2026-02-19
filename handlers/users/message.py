@@ -1,4 +1,3 @@
-from ast import parse
 from aiogram import Router, types, Bot
 from aiogram.enums import ChatAction
 from aiogram.utils.chat_action import ChatActionSender

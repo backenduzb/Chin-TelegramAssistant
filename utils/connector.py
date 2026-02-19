@@ -1,6 +1,5 @@
 from cloudflare import Cloudflare
 from config.settings import CLAUDE_LLMA_SECRET
-from utils.formatter import markdown_to_html
 
 async def get_request_data(message: str):
         
