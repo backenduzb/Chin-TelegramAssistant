@@ -1,5 +1,6 @@
 from cloudflare import Cloudflare
 from config.settings import CLAUDE_LLMA_SECRET
+from utils.formatter import markdown_to_html
 
 async def get_request_data(message: str):
         
@@ -13,5 +14,6 @@ async def get_request_data(message: str):
             {"role": "user", "content": f"{message}, O'zbek tilida javobber."}
         ],
     )
-    return response.get('response')
+    formatted_response = markdown_to_html(response.get('response'))
+    return formatted_response
     
