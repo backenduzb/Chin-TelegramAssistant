@@ -9,7 +9,7 @@ HTML_PATTERN = re.compile(r"(<pre>.*?</pre>|<code>.*?</code>|<b>.*?</b>|<i>.*?</
 async def write(text: str, message):
     parts = HTML_PATTERN.split(text)  
 
-    msg = await message.answer("…")
+    msg = await message.answer("...")
     final_text = ""
 
     for part in parts:
