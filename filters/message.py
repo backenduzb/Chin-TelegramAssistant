@@ -60,5 +60,5 @@ class AdminIsOffline(BaseFilter):
     async def __call__(self, message: Message):
         
         if self.text:
-            return "Assalomu alaykum uzur hozir javob bera olmayman online bo'lgan vaqtim javob yozaman.".lower() in str(message.text).lower()
+            return "Assalomu alaykum uzur hozir javob bera olmayman online bo'lgan vaqtim javob yozaman."==str(message.text)
         return False

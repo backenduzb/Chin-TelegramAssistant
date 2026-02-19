@@ -9,7 +9,6 @@ router = Router()
 
 @router.business_message(AdminIsOffline())
 async def admin_offline(message: types.Message):
-
     msg = await write(
         "Assalomu alaykum uzur Javohir hozir online emas. Online bo'lishi bilan albatta habaringizni o'qiydi.",
         message,
