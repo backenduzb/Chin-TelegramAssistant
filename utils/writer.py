@@ -1,58 +1,38 @@
 import asyncio
+import html
+import re
 
-TAG_PATTERNS = [
-    (r"\*\*", r"\*\*"),       
-    (r"\*", r"\*"),           
-    (r"`", r"`"),             
-    (r"```", r"```"),         
-]
+HTML_TAGS = ["<b>", "</b>", "<i>", "</i>", "<code>", "</code>", "<pre>", "</pre>"]
+
+HTML_PATTERN = re.compile(r"(<pre>.*?</pre>|<code>.*?</code>|<b>.*?</b>|<i>.*?</i>)", re.DOTALL)
 
 async def write(text: str, message):
-    msg = await message.answer("...")
+    parts = HTML_PATTERN.split(text)  
 
-    words = text.split(" ")
-    message_text = ""
-    skip_buffer = ""
-    in_tag = None  
+    msg = await message.answer("…")
+    final_text = ""
 
-    i = 0
-    while i < len(words):
-        word = words[i]
+    for part in parts:
+        if not part:
+            continue
 
-        if in_tag is None:
-            for start, end in TAG_PATTERNS:
-                if word.startswith(start):
-                    in_tag = end
-                    skip_buffer += word + " "
-                    break
-
-            if in_tag:
-                i += 1
-                continue
-
-            message_text += word + " "
+        if any(tag in part for tag in HTML_TAGS):
+            final_text += part
             try:
-                await msg.edit_text(message_text.strip())
+                await msg.edit_text(final_text, parse_mode="HTML")
                 await asyncio.sleep(0.08)
             except Exception as e:
                 print("WRITE ERROR:", e)
                 break
-
         else:
-            skip_buffer += word + " "
-
-            if word.endswith(in_tag):
-                message_text += skip_buffer
+            words = part.split(" ")
+            for word in words:
+                final_text += html.escape(word) + " "
                 try:
-                    await msg.edit_text(message_text.strip())
-                    await asyncio.sleep(0.08)
+                    await msg.edit_text(final_text.strip(), parse_mode="HTML")
+                    await asyncio.sleep(0.07)
                 except Exception as e:
                     print("WRITE ERROR:", e)
                     break
-
-                skip_buffer = ""
-                in_tag = None
-
-        i += 1
 
     return msg
