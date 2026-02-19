@@ -5,6 +5,7 @@ from config.settings import (
 )
 
 async def set_webhook(bot: Bot) -> None:
+    await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_webhook(
         f"{WEBHOOK_BASE_URL}webhook",
         secret_token=WEBHOOK_SECRET,
