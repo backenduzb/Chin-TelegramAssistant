@@ -17,5 +17,4 @@ async def response_with_ai(message: types.Message, bot: Bot):
         bot=bot, chat_id=message.from_user.id, action=ChatAction.RECORD_VOICE
     ):
         ai_response = await get_request_data(str(message.text))
-    await message.answer(ai_response, parse_mode="markdown")
     await write(text=ai_response, message=message)

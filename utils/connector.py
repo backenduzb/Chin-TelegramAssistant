@@ -14,6 +14,5 @@ async def get_request_data(message: str):
             {"role": "user", "content": f"{message}, O'zbek tilida javobber."}
         ],
     )
-    formatted_response = markdown_to_html(response.get('response'))
-    return formatted_response
+    return response.get('response')
     
