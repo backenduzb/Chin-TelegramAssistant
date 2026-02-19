@@ -38,7 +38,7 @@ async def write(text: str, message):
     text = markdown_to_html(text)
     parts = HTML_PATTERN.split(text)
 
-    msg = await message.answer("…")
+    msg = await message.answer("...")
     final_text = ""
 
     for part in parts:
@@ -49,7 +49,7 @@ async def write(text: str, message):
             final_text += part
             try:
                 await msg.edit_text(final_text, parse_mode="HTML")
-                await asyncio.sleep(0.08)
+                await asyncio.sleep(0.2)
             except Exception as e:
                 print("WRITE ERROR:", e)
                 break
@@ -59,7 +59,7 @@ async def write(text: str, message):
                 final_text += word + " "
                 try:
                     await msg.edit_text(final_text.strip(), parse_mode="HTML")
-                    await asyncio.sleep(0.06)
+                    await asyncio.sleep(0.2)
                 except Exception as e:
                     print("WRITE ERROR:", e)
                     break
