@@ -1,17 +1,29 @@
-import html
 import re
+import html
 
-def has_code_block(text: str) -> bool:
-    return "```" in text
+def markdown_to_html(text: str) -> str:
 
-def extract_code_language(text: str):
-    match = re.search(r"```(\w+)?", text)
-    if match:
-        return match.group(1)
-    return None
+    def code_block_replacer(match):
+        code_content = match.group(2)
+        escaped = html.escape(code_content.strip())
+        return f"<pre><code>{escaped}</code></pre>"
 
-def to_html_codeblock(text: str) -> str:
-    cleaned = re.sub(r"```(\w+)?", "", text)
-    cleaned = cleaned.replace("```", "")
-    escaped = html.escape(cleaned.strip())
-    return f"<pre><code>{escaped}</code></pre>"
+    text = re.sub(
+        r"```(\w+)?\n?(.*?)```",
+        code_block_replacer,
+        text,
+        flags=re.DOTALL
+    )
+
+    def inline_code_replacer(match):
+        code_content = match.group(1)
+        escaped = html.escape(code_content)
+        return f"<code>{escaped}</code>"
+        
+    text = re.sub(
+        r"(?<!`)`([^`\n]+)`",
+        inline_code_replacer,
+        text
+    )
+
+    return text

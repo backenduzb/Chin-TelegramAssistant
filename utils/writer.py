@@ -1,14 +1,13 @@
+from utils.formatter import markdown_to_html
 import asyncio
-from aiogram.enums import ParseMode
-from utils.formatter import has_code_block, to_html_codeblock
-
 
 async def write(text: str, message):
-    if has_code_block(text):
-        safe_text = to_html_codeblock(text)
+    safe_text = markdown_to_html(text)
+
+    if "<pre><code>" in safe_text:
         return await message.answer(
             safe_text,
-            parse_mode=ParseMode.HTML
+            parse_mode="HTML"
         )
 
     msg = await message.answer("...")
@@ -19,7 +18,7 @@ async def write(text: str, message):
         message_text += word + " "
         try:
             await msg.edit_text(message_text.strip())
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.09)
         except Exception:
             break
 
