@@ -1,5 +1,6 @@
 from cloudflare import Cloudflare
 from config.settings import CLAUDE_LLMA_SECRET
+from config.data import CONTENT
 
 async def get_request_data(message: str):
         
@@ -12,7 +13,7 @@ async def get_request_data(message: str):
         messages=[
             {
                 "role": "system",
-                "content": "You are an AI assistant. You must answer ONLY in Uzbek language. Do not use English words. If the user writes in another language, still respond in Uzbek."
+                "content": CONTENT
             },
             {
                 "role": "user",
