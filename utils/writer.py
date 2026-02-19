@@ -6,8 +6,8 @@ HTML_TAGS = ["<b>", "</b>", "<i>", "</i>", "<code>", "</code>", "<pre>", "</pre>
 HTML_PATTERN = re.compile(r"(<pre>.*?</pre>|<code>.*?</code>|<b>.*?</b>|<i>.*?</i>)", re.DOTALL)
 
 def markdown_to_html(text: str) -> str:
-    text = re.sub(r"```(.*?)```", r"<pre><code>\1</code></pre>", text, flags=re.DOTALL)
-    text = re.sub(r"`(.*?)`", r"<code>\1</code>", text)
+    text = re.sub(r"```python(.*?)```", r"<pre><code>\1</code></pre>", text, flags=re.DOTALL)
+    text = re.sub(r"`python(.*?)`", r"<code>\1</code>", text)
     text = html.escape(text, quote=False)
     text = text.replace("&lt;pre&gt;", "<pre>").replace("&lt;/pre&gt;", "</pre>")
     text = text.replace("&lt;code&gt;", "<code>").replace("&lt;/code&gt;", "</code>")
